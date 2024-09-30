@@ -1,6 +1,16 @@
 from flask import Flask, request, jsonify
 from pymongo import MongoClient
 from uuid import uuid4
+from pydantic import BaseModel, Field, ValidationError
+from typing import Type, List
+
+class User(BaseModel):
+    id: str
+    name: str
+    email: str
+    tags: List[str] = Field(default_factory=list)
+
+
 server = Flask(__name__)
 user_collection = None
 
@@ -10,33 +20,35 @@ def set_mongo_client(mongo_client: MongoClient):
 
 @server.route("/")
 def root():
-    return "User Storage"
+    return "User Api"
 
-def validate_idea_data(data):
-    required_fields = ['name', 'email']
-    for field in required_fields:
-        if field not in data or not data[field]:
-            return False, f"Missing or empty field: {field}"
-    return True, ""
+def validate_json_schema(json: dict, cls: Type):
+    # validate that the accepted json is cintaining all the data nedded
+    instance = None
+    try:
+        instance = cls(**json)
+    except ValidationError as e:
+        return None, e.json()
+    return instance.__dict__, ""
 
 @server.route("/user", methods=["POST"])
 def add_user():
     data = request.get_json()
-    is_valid, error_message = validate_idea_data(data)
-    if not is_valid:
-        return jsonify(error_message), 400
     id = str(uuid4())
-    user_dict = {"id": id, "name": data['name'], "email": data['email'], "tags":data.get('tags', [])}
-    user_collection.insert_one(user_dict)
-    return jsonify(id), 200
+    data["id"] = id
+    instance, error_message = validate_json_schema(data, User)
+    if not instance:
+        return jsonify({"error": error_message}), 400
+    
+    user_collection.insert_one(instance)
+    return jsonify({"id": id}), 201
 
 @server.route("/user/<id>", methods=["GET"])
 def get_user(id):
-    user = user_collection.find_one({"id": id})
+    user = user_collection.find_one({"id": id}, {"_id": 0})
     if user:
-        del user["_id"] # mongodb id. we dont need it
-        return jsonify(user)
-    return jsonify(f"User with id '{id}' was not found"), 404
+        return jsonify({"user": user})
+    return jsonify({"error": f"User with id '{id}' was not found"}), 404
 
 
 @server.route("/user/<id>", methods=["DELETE"])

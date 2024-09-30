@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "user"
 version = "0.1.0"
-description = "user api"
+description = ""
 authors = ["Akiva Zonenfeld <akivazo1@gmail.com>"]
 readme = "README.md"
 
@@ -9,10 +9,10 @@ readme = "README.md"
 python = "^3.12"
 flask = "^3.0.3"
 pymongo = "^4.9.1"
-python-dotenv = "^1.0.1"
-waitress = "^3.0.0"
-pytest = "^8.3.3"
 mongomock = "^4.2.0.post1"
+waitress = "^3.0.0"
+pydantic = "^2.9.2"
+pytest = "^8.3.3"
 
 
 [build-system]
