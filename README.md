@@ -2,7 +2,9 @@
 Rest API to create, retrive and delete users.
 
 user model:
-   name, email, tags
+   name: name of the user
+   email: user's emails
+   tags: categorites tags that interesting the user
 
 
 1. Create a New User
