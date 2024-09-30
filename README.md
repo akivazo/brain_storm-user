@@ -5,7 +5,7 @@ user model:
    name: name of the user
    email: user's emails
    tags: categorites tags that interesting the user
-
+_________________________
 
 1. Create a New User
 Endpoint: POST /user
