@@ -1,5 +1,8 @@
 
-Here’s the endpoints schema based on your Flask code for managing users:
+Rest API to create, retrive and delete users.
+
+user model:
+   name, email, tags
 
 
 1. Create a New User
