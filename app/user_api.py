@@ -55,3 +55,12 @@ def get_user(id):
 def delete_idea(id):
     user_collection.delete_one({"id": id})
     return jsonify(f"User with id '{id}' was deleted successfully"), 204
+
+
+if __name__ == "__main__":
+    import os, dotenv
+    dotenv.load_dotenv()
+    mongo_client = MongoClient(os.environ["USER_MONGODB_URI"])
+    set_mongo_client(mongo_client)
+    server.run(debug=True, port=5000)
+    mongo_client.close()
