@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from pymongo import MongoClient
 from uuid import uuid4
 from pydantic import BaseModel, Field, ValidationError
@@ -12,6 +13,7 @@ class User(BaseModel):
 
 
 server = Flask(__name__)
+CORS(server)
 user_collection = None
 
 def set_mongo_client(mongo_client: MongoClient):
