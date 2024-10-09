@@ -8,6 +8,7 @@ from typing import Type, List
 class User(BaseModel):
     id: str
     name: str
+    password: str
     email: str
     tags: List[str] = Field(default_factory=list)
 
@@ -25,7 +26,7 @@ def root():
     return "User Api"
 
 def validate_json_schema(json: dict, cls: Type):
-    # validate that the accepted json is cintaining all the data nedded
+    # validate that the accepted json is containing all the data nedded
     instance = None
     try:
         instance = cls(**json)
@@ -45,19 +46,18 @@ def add_user():
     user_collection.insert_one(instance)
     return jsonify({"id": id}), 201
 
-@server.route("/user/<id>", methods=["GET"])
-def get_user(id):
-    user = user_collection.find_one({"id": id}, {"_id": 0})
+@server.route("/user/<id>/<password>", methods=["GET"])
+def get_user(id, password):
+    user = user_collection.find_one({"id": id, "password": password}, {"_id": 0})
     if user:
         return jsonify({"user": user})
-    return jsonify({"error": f"User with id '{id}' was not found"}), 404
+    return jsonify({"error": f"User with id '{id}' and the given password was not found"}), 404
 
 
 @server.route("/user/<id>", methods=["DELETE"])
 def delete_idea(id):
     user_collection.delete_one({"id": id})
     return jsonify(f"User with id '{id}' was deleted successfully"), 204
-
 
 if __name__ == "__main__":
     import os, dotenv
