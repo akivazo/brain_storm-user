@@ -27,7 +27,17 @@ def test_add_user(client: FlaskClient):
     response = create_user(client)
     assert response.status_code == 201
     data = response.get_json()
-    assert isinstance(data["id"], str) #id
+    assert isinstance(data, str)
+
+def test_add_user_already_exist(client: FlaskClient):
+    response = client.post("/user", json={"name": "John Doe", "password": "secret", "email": "john@example.com", "tags": ["tag1", "tag2"]})
+    assert response.status_code == 201
+    
+    # second time
+    response = client.post("/user", json={"name": "John Doe", "password": "secret2", "email": "john2@example.com", "tags": ["tag1", "tag2", "tag3"]})
+    assert response.status_code == 409
+    data = response.get_json()
+    assert "error" in data
 
 def test_add_user_missing_field(client: FlaskClient):
     response = client.post("/user", json={"name": "John Doe"})
@@ -37,8 +47,7 @@ def test_add_user_missing_field(client: FlaskClient):
 
 def test_get_user(client: FlaskClient):
     response = create_user(client)
-    user_id = response.get_json()["id"]
-    response = client.get(f"/user/{user_id}/secret")
+    response = client.get(f"/user/John Doe/secret")
     assert response.status_code == 200
     data = response.get_json()["user"]
     assert data['name'] == "John Doe"
@@ -48,8 +57,7 @@ def test_get_user(client: FlaskClient):
 
 def test_get_user_wrond_password(client: FlaskClient):
     response = create_user(client)
-    user_id = response.get_json()["id"]
-    response = client.get(f"/user/{user_id}/wrond")
+    response = client.get(f"/user/John Doe/wrond")
     
     assert response.status_code == 404
     data = response.get_json()
@@ -57,8 +65,7 @@ def test_get_user_wrond_password(client: FlaskClient):
 
 def test_get_user_no_tags(client: FlaskClient):
     response = client.post("/user", json={"name": "James", "password": "secret", "email": "james@example.com"})
-    user_id = response.get_json()["id"]
-    response = client.get(f"/user/{user_id}/secret")
+    response = client.get(f"/user/James/secret")
     assert response.status_code == 200
     data = response.get_json()["user"]
     assert data['name'] == "James"
@@ -74,8 +81,19 @@ def test_get_nonexistent_user(client: FlaskClient):
 
 def test_delete_user(client: FlaskClient):
     response = create_user(client)
-    user_id = response.get_json()
-    response = client.delete(f"/user/{user_id}")
+    response = client.get(f"/user/John Doe/secret")
+    assert response.status_code == 200
+    response = client.delete(f"/user/John Doe/secret")
     assert response.status_code == 204
-    response = client.get(f"/user/{user_id}/secret")
+    response = client.get(f"/user/John Doe/secret")
     assert response.status_code == 404
+
+def test_deleted_wrong_user(client: FlaskClient):
+    response = create_user(client)
+    response = client.get(f"/user/John Doe/secret")
+    assert response.status_code == 200
+    response = client.delete(f"/user/John duck/secret")
+    assert response.status_code == 404
+    response = client.delete(f"/user/John Doe/wrong")
+    assert response.status_code == 404
+
