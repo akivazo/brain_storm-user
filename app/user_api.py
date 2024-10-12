@@ -1,12 +1,10 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from pymongo import MongoClient
-from uuid import uuid4
 from pydantic import BaseModel, Field, ValidationError
 from typing import Type, List
 
 class User(BaseModel):
-    id: str
     name: str
     password: str
     email: str
@@ -37,27 +35,34 @@ def validate_json_schema(json: dict, cls: Type):
 @server.route("/user", methods=["POST"])
 def add_user():
     data = request.get_json()
-    id = str(uuid4())
-    data["id"] = id
     instance, error_message = validate_json_schema(data, User)
     if not instance:
         return jsonify({"error": error_message}), 400
     
+    # check if exist
+    name = instance["name"]
+    result = user_collection.find_one({"name": name})
+    if result:
+        return jsonify({"error": f"User with name {name} is already exist"}), 409
     user_collection.insert_one(instance)
-    return jsonify({"id": id}), 201
+    return jsonify("User Created Succesfully"), 201
 
-@server.route("/user/<id>/<password>", methods=["GET"])
-def get_user(id, password):
-    user = user_collection.find_one({"id": id, "password": password}, {"_id": 0})
+@server.route("/user/<name>/<password>", methods=["GET"])
+def get_user(name, password):
+    user = user_collection.find_one({"name": name, "password": password}, {"_id": 0})
     if user:
         return jsonify({"user": user})
-    return jsonify({"error": f"User with id '{id}' and the given password was not found"}), 404
+    return jsonify({"error": f"User with the name '{name}' and the given password was not found"}), 404
 
 
-@server.route("/user/<id>", methods=["DELETE"])
-def delete_idea(id):
-    user_collection.delete_one({"id": id})
-    return jsonify(f"User with id '{id}' was deleted successfully"), 204
+@server.route("/user/<name>/<password>", methods=["DELETE"])
+def delete_idea(name, password):
+    result = user_collection.delete_one({"name": name, "password": password})
+    assert result.deleted_count <= 1
+    if result.deleted_count == 1:
+        return jsonify(f"User with name '{name}' was deleted successfully"), 204
+    if result.deleted_count == 0:
+        return jsonify({"error": "Can't find user"}), 404
 
 if __name__ == "__main__":
     import os, dotenv
