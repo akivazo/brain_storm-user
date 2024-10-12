@@ -97,3 +97,10 @@ def test_deleted_wrong_user(client: FlaskClient):
     response = client.delete(f"/user/John Doe/wrong")
     assert response.status_code == 404
 
+def test_is_user_exist(client: FlaskClient):
+    response = client.post("/user", json={"name": "James", "password": "secret", "email": "james@example.com"})
+    assert response.status_code == 201
+    response = client.get("/user_exist/James") # same user again
+    assert response.get_json() == "Y"
+    response = client.get("/user_exist/John") # different user
+    assert response.get_json() == "N"
