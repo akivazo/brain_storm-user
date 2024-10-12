@@ -32,6 +32,7 @@ def validate_json_schema(json: dict, cls: Type):
         return None, e.json()
     return instance.__dict__, ""
 
+
 @server.route("/user", methods=["POST"])
 def add_user():
     data = request.get_json()
@@ -63,6 +64,13 @@ def delete_idea(name, password):
         return jsonify(f"User with name '{name}' was deleted successfully"), 204
     if result.deleted_count == 0:
         return jsonify({"error": "Can't find user"}), 404
+
+@server.route("/user_exist/<name>", methods=["GET"])
+def is_name_used(name):
+    result = user_collection.find_one({"name": name})
+    if result:
+        return jsonify("Y")
+    return jsonify("N")
 
 if __name__ == "__main__":
     import os, dotenv
