@@ -52,7 +52,7 @@ def get_user(name, password):
     user = user_collection.find_one({"name": name, "password": password}, {"_id": 0})
     if user:
         return jsonify({"user": user})
-    return jsonify({"error": f"User with id '{name}' and the given password was not found"}), 404
+    return jsonify({"error": f"User with the name '{name}' and the given password was not found"}), 404
 
 
 @server.route("/user/<name>/<password>", methods=["DELETE"])
