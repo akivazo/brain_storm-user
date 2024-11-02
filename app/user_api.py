@@ -1,14 +1,13 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from pymongo import MongoClient
-from pydantic import BaseModel, Field, ValidationError
-from typing import Type, List
+from pydantic import BaseModel, ValidationError
+from typing import Type
 
 class User(BaseModel):
     name: str
     password: str
     email: str
-    tags: List[str] = Field(default_factory=list)
 
 
 server = Flask(__name__)
