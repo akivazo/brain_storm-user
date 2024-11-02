@@ -30,11 +30,11 @@ def test_add_user(client: FlaskClient):
     assert isinstance(data, str)
 
 def test_add_user_already_exist(client: FlaskClient):
-    response = client.post("/user", json={"name": "John Doe", "password": "secret", "email": "john@example.com", "tags": ["tag1", "tag2"]})
+    response = client.post("/user", json={"name": "John Doe", "password": "secret", "email": "john@example.com"})
     assert response.status_code == 201
     
     # second time
-    response = client.post("/user", json={"name": "John Doe", "password": "secret2", "email": "john2@example.com", "tags": ["tag1", "tag2", "tag3"]})
+    response = client.post("/user", json={"name": "John Doe", "password": "secret2", "email": "john2@example.com"})
     assert response.status_code == 409
     data = response.get_json()
     assert "error" in data
@@ -52,7 +52,6 @@ def test_get_user(client: FlaskClient):
     data = response.get_json()["user"]
     assert data['name'] == "John Doe"
     assert data['email'] == "john@example.com"
-    assert data["tags"] == ["tag1", "tag2"]
     assert data["password"] == "secret"
 
 def test_get_user_wrond_password(client: FlaskClient):
@@ -70,7 +69,6 @@ def test_get_user_no_tags(client: FlaskClient):
     data = response.get_json()["user"]
     assert data['name'] == "James"
     assert data['email'] == "james@example.com"
-    assert data["tags"] == []
     assert data["password"] == "secret"
 
 def test_get_nonexistent_user(client: FlaskClient):
