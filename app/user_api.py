@@ -2,12 +2,13 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from pymongo import MongoClient
 from pydantic import BaseModel, ValidationError
-from typing import Type
+from typing import Type, List
 
 class User(BaseModel):
     name: str
     password: str
     email: str
+    favorites: List[str]
 
 
 server = Flask(__name__)
@@ -35,6 +36,7 @@ def validate_json_schema(json: dict, cls: Type):
 @server.route("/user", methods=["POST"])
 def add_user():
     data = request.get_json()
+    data["favorites"] = []
     instance, error_message = validate_json_schema(data, User)
     if not instance:
         return jsonify({"error": error_message}), 400
@@ -70,6 +72,18 @@ def is_name_used(name):
     if result:
         return jsonify("Y")
     return jsonify("N")
+
+@server.route("/favorite/<user_name>/<idea_id>", methods=["POST"])
+def add_favorite_idea(user_name, idea_id):
+    user_collection.update_one({"name": user_name}, {"$push": {"favorites": idea_id}})
+    return "", 200
+
+@server.route("/favorite/<user_name>/<idea_id>", methods=["DELETE"])
+def remove_favorite_idea(user_name, idea_id):
+    user_collection.update_one({"name": user_name}, {"$pull": {"favorites": idea_id}})
+    return "", 200
+
+
 
 if __name__ == "__main__":
     import os, dotenv

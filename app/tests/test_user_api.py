@@ -102,3 +102,30 @@ def test_is_user_exist(client: FlaskClient):
     assert response.get_json() == "Y"
     response = client.get("/user_exist/John") # different user
     assert response.get_json() == "N"
+
+def test_favorites(client: FlaskClient):
+    create_user(client)
+
+    response = client.get(f"/user/John Doe/secret")
+    user = response.get_json()["user"]
+
+    assert user["favorites"] == []
+
+    response = client.post("/favorite/John Doe/id1")
+    assert response.status_code == 200
+
+    response = client.post("/favorite/John Doe/id2")
+    assert response.status_code == 200
+
+    response = client.get(f"/user/John Doe/secret")
+    user = response.get_json()["user"]
+
+    assert user["favorites"] == ["id1", "id2"]
+
+    response = client.delete("/favorite/John Doe/id2")
+    assert response.status_code == 200
+
+    response = client.get(f"/user/John Doe/secret")
+    user = response.get_json()["user"]
+
+    assert user["favorites"] == ["id1"]
