@@ -75,7 +75,7 @@ def is_name_used(name):
 
 @server.route("/favorite/<user_name>/<idea_id>", methods=["POST"])
 def add_favorite_idea(user_name, idea_id):
-    user_collection.update_one({"name": user_name}, {"$push": {"favorites": idea_id}})
+    user_collection.update_one({"name": user_name}, {"$addToSet": {"favorites": idea_id}})
     return "", 200
 
 @server.route("/favorite/<user_name>/<idea_id>", methods=["DELETE"])
